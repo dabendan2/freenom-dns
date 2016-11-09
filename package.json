@@ -1,0 +1,24 @@
+{
+  "name": "freenom-dns-manager",
+  "version": "0.0.1",
+  "description": "A node.js implementation for managing freenom.com dns records",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "freenom",
+    "dns"
+  ],
+  "author": "dabendan",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "q": "^1.4.1",
+    "request": "^2.78.0"
+  }
+}
