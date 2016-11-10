@@ -17,6 +17,7 @@
   "author": "dabendan",
   "license": "MIT",
   "dependencies": {
+    "async": "^2.1.2",
     "cheerio": "^0.22.0",
     "q": "^1.4.1",
     "request": "^2.78.0"
