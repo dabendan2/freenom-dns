@@ -9,6 +9,8 @@ exports.init = init;
 var Q = require('q');
 var cheerio = require("cheerio");
 var async = require('async');
+var debug = require('debug')('freenom.d');
+var debugv = require('debug')('freenom.v');
 
 var credential;
 var request = require("request").defaults({
@@ -36,6 +38,7 @@ function isLoginNeeded(h) {
 //Input:
 //Output: promise
 function Login() {
+    debug("Login: ++");
     var deferred = Q.defer();
     var html = "";
     request.post({
@@ -49,9 +52,9 @@ function Login() {
                 if (res.statusCode >= 400 && res.statusCode < 500)
                     deferred.reject("Login: " + res.statusCode);
                 else {
-                    //console.log("[DEBUG] HEADER=" + JSON.stringify(res.headers));
+                    debugv("HEADER=" + JSON.stringify(res.headers));
                     var login = res.headers.location.indexOf("incorrect=true") == -1;
-                    console.log("Login: " + login);
+                    debug("Login: " + login);
                     if (login) {
                         deferred.resolve();
                     } else
@@ -84,6 +87,7 @@ function runFuncWithRetry(f, args) {
 }
 
 function listDomains() {
+    debug("listDomains: ++");
     return runFuncWithRetry(listDomainsWithoutRetry, []);
 }
 
@@ -130,7 +134,7 @@ function listDomainsWithoutRetry() {
                         type: type
                     });
             }
-            console.log("listDomainsWithoutRetry: ret " + ret.length);
+            debug("listDomainsWithoutRetry: ret " + ret.length);
             context.mDomains = ret;
             deferred.resolve(ret);
         });
@@ -152,6 +156,7 @@ function findDomainBySuffix(req, callback) {
 }
 
 function listRecords(domain) {
+    debug("listRecords: ++");
     return runFuncWithRetry(listRecordsWithoutRetry, [domain]);
 }
 
@@ -172,7 +177,7 @@ function listRecordsWithoutRetry(req) {
         if (err) {
             deferred.reject(err);
         } else {
-            console.log("listRecords: req=" + req);
+            debug("listRecords: req=" + req);
             var url = "https://my.freenom.com/clientarea.php?managedns=" + domain.name + "&domainid=" + domain.id;
             request.get(url, null, handleListRecordResult.bind(null, domain, deferred));
         }
@@ -182,7 +187,7 @@ function listRecordsWithoutRetry(req) {
 
 function handleListRecordResult(domain, deferred, err, res, body) {
     if (err) {
-        deferred.reject("listRecords: " + err);
+        deferred.reject(err);
         return;
     }
     if (res.statusCode >= 400 && res.statusCode < 500) {
@@ -200,7 +205,7 @@ function handleListRecordResult(domain, deferred, err, res, body) {
     var tr = h(table[0]).find("tbody tr");
     var ret = [];
     for (var i = 0; i < tr.length; i++) {
-        //console.log("[DEBUG] TR[" + i + "]=" + h(tr[i]).html());
+        debugv("TR[" + i + "]=" + h(tr[i]).html());
         var name = h(tr[i]).find("input[name='records[" + i + "][name]']").val();
         var type = h(tr[i]).find("input[name='records[" + i + "][type]']").val();
         var ttl = h(tr[i]).find("input[name='records[" + i + "][ttl]']").val();
@@ -226,6 +231,7 @@ if (typeof String.prototype.endsWith !== 'function') {
 }
 
 function setRecord(fqdn, type, value, ttl) {
+    debug("setRecord:++");
     var deferred = Q.defer();
     async.waterfall([
         findDomainBySuffix.bind(null, fqdn),
@@ -233,7 +239,7 @@ function setRecord(fqdn, type, value, ttl) {
             listRecords(domain.name).then(function(records) {
                 records = records.slice(); //clone array
                 var name = fqdn.toLowerCase().replace(domain.name.toLowerCase(), "").replace(/\.$/, "");
-                console.log("editRecord: name = " + name +
+                debug("editRecord: name = " + name +
                     " domain = " + domain.name +
                     " records = " + records.length);
                 var record;
@@ -284,7 +290,7 @@ function updateRecords(domain, records) {
 function updateRecordsWithoutRetry(domain, records) {
     var deferred = Q.defer();
     var oriList = context.mRecords[domain.name];
-    console.log("[DEBUG] records " + oriList.length + " -> " + records.length);
+    debug("records " + oriList.length + " -> " + records.length);
     var opt = {
         url: "https://my.freenom.com/clientarea.php?managedns=" +
             domain.name + "&domainid=" + domain.id,
@@ -326,15 +332,15 @@ function updateRecordsWithoutRetry(domain, records) {
             value: oriList[i].value
         };
     }
-    console.log("updateRecords: action = " + (opt.form ? opt.form.dnsaction : opt.qs.dnsaction));
-    //console.log("[DEBUG] REQ=" + JSON.stringify(opt));
+    debug("updateRecords: action = " + (opt.form ? opt.form.dnsaction : opt.qs.dnsaction));
+    debugv("REQ=" + JSON.stringify(opt));
     request(opt, handleModifyRecordResult.bind(null, domain, deferred));
     return deferred.promise;
 }
 
 function handleModifyRecordResult(domain, deferred, err, res, body) {
     if (err) {
-        deferred.reject("updateRecords: " + err);
+        deferred.reject(err);
         return;
     }
     if (res.statusCode >= 400 && res.statusCode < 500) {
@@ -346,9 +352,9 @@ function handleModifyRecordResult(domain, deferred, err, res, body) {
         deferred.reject("login is needed");
         return;
     }
-    //console.log("[DEBUG] STATUS=" + res.statusCode);
-    //console.log("[DEBUG] HEADER=" + JSON.stringify(res.headers));
-    //console.log("[DEBUG] BODY=" + body);
+    debugv("STATUS=" + res.statusCode);
+    debugv("HEADER=" + JSON.stringify(res.headers));
+    debugv("BODY=" + body);
     var li = h("div.recordslist li");
     var ret = [];
     var failed = false;
