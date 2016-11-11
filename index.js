@@ -237,8 +237,10 @@ function setRecord(fqdn, type, value, ttl) {
                     " domain = " + domain.name +
                     " records = " + records.length);
                 var record;
-                for (var i = 0; i < records.length; i++) {
-                    if (name === records[i].name.toLowerCase()) {
+                var i;
+                for (i = 0; i < records.length; i++) {
+                    if (name === records[i].name.toLowerCase() &&
+                        type.toLowerCase() === records[i].type.toLowerCase()) {
                         record = records[i];
                         break;
                     }
@@ -248,17 +250,21 @@ function setRecord(fqdn, type, value, ttl) {
                     record = records[i];
                 }
                 if (record) {
-                    record.type = type;
-                    record.name = fqdn;
-                    record.value = value;
-                    if (!record.ttl || typeof ttl != "undefined")
-                        record.ttl = (typeof ttl != "undefined" ? ttl : 1440);
+                    if (!value) //delete item
+                        records.splice(i, 1);
+                    else {
+                        record.type = type;
+                        record.name = fqdn;
+                        record.value = value;
+                        if (!record.ttl || typeof ttl != "undefined")
+                            record.ttl = (typeof ttl != "undefined" ? ttl : 1440);
+                    }
                 }
                 callback(null, domain, records);
             }).catch((err) => callback(err));
         }, //edit and upload
         function(domain, records, callback) {
-            uploadRecords(domain, records)
+            updateRecords(domain, records)
                 .then((result) => callback(null, result))
                 .catch((err) => callback(err));
         }
@@ -271,50 +277,68 @@ function setRecord(fqdn, type, value, ttl) {
     return deferred.promise;
 }
 
-function uploadRecords(domain, records) {
-    return runFuncWithRetry(uploadRecordsWithoutRetry, [domain, records]);
+function updateRecords(domain, records) {
+    return runFuncWithRetry(updateRecordsWithoutRetry, [domain, records]);
 }
 
-function uploadRecordsWithoutRetry(domain, records) {
+function updateRecordsWithoutRetry(domain, records) {
     var deferred = Q.defer();
-    var form = new Object();
-    var url = "https://my.freenom.com/clientarea.php?managedns=" + domain.name + "&domainid=" + domain.id;
-    form.token = context.token;
     var oriList = context.mRecords[domain.name];
     console.log("[DEBUG] records " + oriList.length + " -> " + records.length);
+    var opt = {
+        url: "https://my.freenom.com/clientarea.php?managedns=" +
+            domain.name + "&domainid=" + domain.id,
+        followAllRedirects: true
+    };
     if (oriList.length < records.length) {
-        form.dnsaction = "add";
-        form.addrecord = {};
+        opt.form = {
+            dnsaction: "add",
+            addrecord: {},
+            token: context.token
+        };
+        opt.method = "POST";
         for (var i = oriList.length; i < records.length; i++) {
-            form.addrecord[i] = records[i];
+            opt.form.addrecord[i] = records[i];
         }
     } else if (oriList.length == records.length) {
-        form.dnsaction = "modify";
-        form.records = {};
+        opt.form = {
+            dnsaction: "modify",
+            records: {},
+            token: context.token
+        };
+        opt.method = "POST";
         for (var i = 0; i < records.length; i++) {
-            form.records[i] = records[i];
+            opt.form.records[i] = records[i];
         }
     } else {
-        form.dnsaction = "del";
+        opt.method = "GET";
+        var i;
+        for (i = 0; i < records.length; i++)
+            if (oriList[i].name != records[i].name ||
+                oriList[i].type != records[i].type) {
+                break;
+            }
+        opt.qs = {
+            dnsaction: "delete",
+            name: oriList[i].name,
+            records: oriList[i].type,
+            ttl: oriList[i].ttl,
+            value: oriList[i].value
+        };
     }
-    console.log("uploadRecords: req = " + domain.name + " records = " + records.length + " action = " + form.dnsaction);
-    //console.log("[DEBUG] FORM=" + JSON.stringify(form));
-    request.post({
-            url: url,
-            form: form,
-            followAllRedirects: true
-        },
-        handleModifyRecordResult.bind(null, domain, deferred));
+    console.log("updateRecords: action = " + (opt.form ? opt.form.dnsaction : opt.qs.dnsaction));
+    //console.log("[DEBUG] REQ=" + JSON.stringify(opt));
+    request(opt, handleModifyRecordResult.bind(null, domain, deferred));
     return deferred.promise;
 }
 
 function handleModifyRecordResult(domain, deferred, err, res, body) {
     if (err) {
-        deferred.reject("uploadRecords: " + err);
+        deferred.reject("updateRecords: " + err);
         return;
     }
     if (res.statusCode >= 400 && res.statusCode < 500) {
-        deferred.reject("uploadRecords: " + res.statusCode);
+        deferred.reject("updateRecords: " + res.statusCode);
         return;
     }
     var h = cheerio.load(body);
@@ -347,5 +371,5 @@ function handleModifyRecordResult(domain, deferred, err, res, body) {
 }
 
 function clearRecord(fqdn, type) {
-    setRecord(fqdn, type, null);
+    return setRecord(fqdn, type, null);
 }
