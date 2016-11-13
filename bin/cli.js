@@ -48,18 +48,18 @@ if (!process.argv.slice(2).length) {
 
 function handleSetCmd(fqdn, type, value, ttl) {
     debug(" fqdn=" + fqdn + " type=" + type);
-    freenom.setRecord(fqdn, type.toUpperCase(), value, ttl)
+    freenom.dns.setRecord(fqdn, type.toUpperCase(), value, ttl)
         .catch((err) => console.log(err));
 }
 
 function handleClearCmd(fqdn, type) {
-    freenom.clearRecord(fqdn, type.toUpperCase())
+    freenom.dns.clearRecord(fqdn, type.toUpperCase())
         .catch((err) => console.log(err));
 }
 
 function handleListCmd(domain) {
     if (domain) {
-        freenom.listRecords(domain)
+        freenom.dns.listRecords(domain)
             .then((records) => {
                 var table = new AsciiTable();
                 table.addRow('Name', 'Type', "Value")
@@ -77,7 +77,7 @@ function handleListCmd(domain) {
                 console.log(err);
             });
     } else {
-        freenom.listDomains()
+        freenom.dns.listDomains()
             .then((domains) => {
                 debug(util.inspect(domains));
                 var table = new AsciiTable();
