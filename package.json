@@ -1,7 +1,7 @@
 {
   "name": "freenom-dns",
-  "version": "1.0.0",
-  "description": "A node.js implementation for managing freenom.com dns records",
+  "version": "0.0.1",
+  "description": "An unofficial node.js implementation for managing freenom.com dns records",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,6 +23,7 @@
     "commander": "^2.9.0",
     "debug": "^2.3.2",
     "inquirer": "^1.2.2",
+    "persistent-cache": "^1.0.1",
     "preferences": "^0.2.1",
     "q": "^1.4.1",
     "request": "^2.78.0"

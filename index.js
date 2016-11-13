@@ -6,7 +6,6 @@ exports.init = init;
 var credential;
 
 function init(user, pass) {
-    //TODO: if lists/cookies are available, restore from file
     credential = {
         username: user,
         password: pass
