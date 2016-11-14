@@ -1,6 +1,6 @@
 {
   "name": "freenom-dns",
-  "version": "0.0.1",
+  "version": "0.9.0",
   "description": "An unofficial node.js implementation for managing freenom.com dns records",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/dabendan2/freenom-dns"
   },
   "keywords": [
     "freenom",
@@ -22,11 +22,13 @@
     "cheerio": "^0.22.0",
     "commander": "^2.9.0",
     "debug": "^2.3.2",
-    "inquirer": "^1.2.2",
+    "inquirer": "^1.2.3",
     "persistent-cache": "^1.0.1",
     "preferences": "^0.2.1",
     "q": "^1.4.1",
-    "request": "^2.78.0"
+    "request": "^2.78.0",
+    "url": "^0.11.0",
+    "util": "^0.10.3"
   },
   "bin": {
     "freenom-dns": "bin/cli.js"
