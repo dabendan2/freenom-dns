@@ -108,7 +108,6 @@ function handleAskLogin(callback) {
         message: 'password:'
     }];
     inquirer.prompt(questions).then(function(ret) {
-        prefs.account = ret;
         freenom.init(ret.username, ret.password);
         if (callback && typeof(callback) == "function")
             callback(null, prefs.account);
