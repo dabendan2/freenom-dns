@@ -1,6 +1,6 @@
 {
   "name": "freenom-dns",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "An unofficial node.js implementation for managing freenom.com dns records",
   "main": "index.js",
   "scripts": {

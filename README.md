@@ -1,7 +1,7 @@
 # freenom-dns
 An unofficial node.js implementation for managing freenom.com dns records.
 
-##Freenom
+## Freenom
 freenom.com is a ccTLD register service, which has several free domains for users to register for free (.tk, .ml, .ga, etc...)
 However, except web UI,  freenom does not provide friendly API interfaces for developers to update DNS records.
 Thus, this module is intend to wrap DNS management web interface and provide some convenient node.js API for you. And the final goal is to provide full set of freenom management API interface, plus some extra features such as ddns functionality.
@@ -60,11 +60,11 @@ Thus, this module is intend to wrap DNS management web interface and provide som
 
         $freenom-dns -h
 
-##API
-###Install
+## API
+### Install
 	npm install --save freenom-dns
 
-###How to use
+### How to use
 First of all, initialize freenom object with your login credential.
 
 		var user = "YOUR EMAIL";
@@ -84,7 +84,7 @@ Then you can call one of the exported api, such as
 The API is in promise style, you can get the result from then() callback if success, or get error reason from catch() callback if failed.
 For other samples, please checkout examples/
 
-###Available methods
+### Available methods
 * dns
 	* listDomains() - list your domains
 	* listRecords(fqdn) - list records for specific domain.
@@ -101,10 +101,10 @@ where type should be one of the following DNS record type.
 * RP
 * TXT
 
-##Reference
+## Reference
 [Freenom offical web site](http://www.freenom.com/)
 
-##Credits
+## Credits
 * [lpinca/freenom](https://www.npmjs.com/package/freenom) - freenom API interfaces, but lack of dns record support.
 * [a-c-t-i-n-i-u-m/freenom.com.ddns.sh](https://gist.github.com/a-c-t-i-n-i-u-m/bc4b1ff265b277dbf195) - awesome shell script to support ddns.
 
